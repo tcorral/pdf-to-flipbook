@@ -1,0 +1,50 @@
+{
+  "name": "pdf-to-flipbook",
+  "version": "1.0.0",
+  "description": "Convert PDF files to interactive web-based flipbooks",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "pdf-to-flipbook": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --loader ts-node/esm src/cli.ts",
+    "start": "node dist/cli.js",
+    "bundle": "esbuild src/cli.ts --bundle --platform=node --target=node18 --outfile=dist/flipbook --external:pdf-parse --external:canvas --external:sharp",
+    "pkg": "pkg --output flipbook dist/flipbook --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-x64 --compress GZip --public --assets node_modules/sharp/vendor:sharp/vendor --assets node_modules/sharp/build:sharp/build",
+    "pkg:build": "npm run build && npm run bundle && npm run pkg",
+    "clean": "rm -rf dist flipbook flipbook.exe",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:install": "playwright install"
+  },
+  "keywords": [
+    "pdf",
+    "flipbook",
+    "converter",
+    "webp",
+    "interactive"
+  ],
+  "author": "PDF to Flipbook",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.32.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.0",
+    "esbuild": "^0.19.11",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "pkg": "^5.8.1",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

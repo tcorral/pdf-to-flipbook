@@ -137,3 +137,40 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Editor directories and files
+.vscode
+.idea
+.cursor
+.cursorrules
+
+# SpecStory directories and files
+.specstory
+.specstoryignore
+.specstoryrules
+.specstorysettings
+.specstoryhistory
+.specstoryproject
+.specstoryproject.json
+.specstoryproject.json.backup
+.specstoryproject.json.backup.backup
+.specstoryproject.json.backup.backup.backup
+
+# Cursor indexing ignore file
+.cursorindexingignore   
+
+# Cursor rules directory
+.cursor/rules
+
+# Cursor history directory
+.cursor/history
+
+# Cursor settings directory
+.cursor/settings
+
+# Cursor extensions directory
+.cursor/extensions
+
+# Playwright test report and results
+playwright-report/
+test-results/
