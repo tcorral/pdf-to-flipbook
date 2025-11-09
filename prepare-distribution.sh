@@ -16,7 +16,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-VERSION="1.0.0"
+# Read version from package.json
+VERSION=$(node -p "require('./package.json').version")
 DIST_DIR="distribution"
 PACKAGE_NAME="pdf-to-flipbook-${VERSION}"
 
@@ -69,7 +70,8 @@ echo ""
 
 # Step 4: Create distribution directory structure
 echo -e "${YELLOW}📁 Step 4: Creating distribution package...${NC}"
-rm -rf "$DIST_DIR" 2>/dev/null || true
+# Only remove the specific version directory, keep others
+rm -rf "$DIST_DIR/$PACKAGE_NAME" 2>/dev/null || true
 mkdir -p "$DIST_DIR/$PACKAGE_NAME"
 
 # Copy executables
@@ -87,14 +89,92 @@ cp -r node_modules/sharp/build "$DIST_DIR/$PACKAGE_NAME/sharp/" 2>/dev/null || t
 # Copy documentation
 cp README.md "$DIST_DIR/$PACKAGE_NAME/"
 
+# Copy templates and themes for customization
+cp -r templates "$DIST_DIR/$PACKAGE_NAME/" 2>/dev/null || echo "Warning: templates directory not found"
+cp -r themes "$DIST_DIR/$PACKAGE_NAME/" 2>/dev/null || echo "Warning: themes directory not found"
+
 echo -e "${GREEN}✓${NC} Distribution files copied"
 echo ""
 
-# Step 5: Create README.txt for clarity
-echo -e "${YELLOW}📝 Step 5: Creating README.txt...${NC}"
-cat > "$DIST_DIR/$PACKAGE_NAME/README.txt" << 'EOF'
+# Step 5: Create additional documentation files
+echo -e "${YELLOW}📝 Step 5: Creating documentation files...${NC}"
+
+# Create QUICK_START.md
+cat > "$DIST_DIR/$PACKAGE_NAME/QUICK_START.md" << 'QUICKSTART'
+# Quick Start Guide
+
+## Setup (30 seconds)
+
+### macOS/Linux
+```bash
+chmod +x flipbook-macos-arm64  # Make executable (Apple Silicon)
+# or: chmod +x flipbook-macos-x64  (Intel Mac)
+# or: chmod +x flipbook-linux-x64  (Linux)
+```
+
+### Windows
+No setup needed - just use `flipbook-win-x64.exe` directly.
+
+## Convert Your First PDF
+
+```bash
+# macOS (Apple Silicon)
+./flipbook-macos-arm64 mybook.pdf
+
+# macOS (Intel)
+./flipbook-macos-x64 mybook.pdf
+
+# Linux
+./flipbook-linux-x64 mybook.pdf
+
+# Windows
+flipbook-win-x64.exe mybook.pdf
+```
+
+## View Your Flipbook
+
+1. The conversion creates a folder (e.g., `mybook_flipbook/`)
+2. Open `flipbook.html` in your web browser
+3. Done! 🎉
+
+## Common Commands
+
+```bash
+# Custom output directory
+./flipbook-macos-arm64 mybook.pdf ./my-flipbook
+
+# Add custom title
+./flipbook-macos-arm64 mybook.pdf --title "My Book"
+
+# High quality (slower, larger file)
+./flipbook-macos-arm64 mybook.pdf --quality 95 --dpi 200
+
+# Fast conversion (lower quality)
+./flipbook-macos-arm64 mybook.pdf --quality 60 --dpi 100
+```
+
+## Next Steps
+
+- See `README.md` for complete documentation
+- Use `--theme-dir` to customize the look with your own CSS
+- Use `--template-dir` to customize the HTML structure
+
+For help:
+```bash
+./flipbook-macos-arm64 --help
+```
+
+Enjoy! 📚✨
+QUICKSTART
+
+echo -e "${GREEN}✓${NC} Documentation files created"
+echo ""
+
+# Step 5b: Create README.txt for clarity
+echo -e "${YELLOW}📝 Step 5b: Creating README.txt...${NC}"
+cat > "$DIST_DIR/$PACKAGE_NAME/README.txt" << EOF
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                        PDF to Flipbook Converter v1.0.0                      ║
+║                        PDF to Flipbook Converter v${VERSION}                      ║
 ║                  Convert PDFs into Interactive Web Flipbooks                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -187,7 +267,7 @@ TROUBLESHOOTING
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-Ready to convert PDFs? See README.md for more information.
+Ready to convert PDFs? See README.md or QUICK_START.md for more information.
 
 Happy flipping! 📚
 EOF

@@ -57,7 +57,14 @@ export class PDFToFlipbookConverter {
         headerColor2: '#764ba2',
       };
 
-      const html = FlipbookGenerator.generateHTML(flipbookConfig);
+      let html: string;
+      try {
+        html = FlipbookGenerator.generateHTML(flipbookConfig, options.templateDir, options.themeDir);
+      } catch (error) {
+        console.error(`❌ HTML generation failed: ${error instanceof Error ? error.message : error}`);
+        throw error;
+      }
+
       const htmlPath = path.join(options.outputDir, 'flipbook.html');
       FlipbookGenerator.saveHTML(html, htmlPath);
       console.log(`✅ HTML generated: ${htmlPath}`);

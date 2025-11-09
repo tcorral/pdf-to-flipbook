@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Modern Flipbook Viewer</title>
+    <style>
+<%- css %>
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><%= title %></h1>
+        <p><%= subtitle %></p>
+    </div>
+
+    <div class="container">
+        <div class="flipbook-wrapper">
+            <div class="book">
+                <div class="pages-container" id="pagesContainer"></div>
+                <div class="page-navigation left" id="navLeft"></div>
+                <div class="page-navigation right" id="navRight"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <button id="firstBtn" onclick="goToPage(1)">⏪ First</button>
+            <button id="prevBtn" onclick="previousPage()">⬅️ Previous</button>
+            <button id="nextBtn" onclick="nextPage()">Next ➡️</button>
+            <button id="lastBtn" onclick="goToPage(totalPages)">Last ⏩</button>
+        </div>
+
+        <div class="control-group">
+            <span>Page:</span>
+            <input type="number" id="pageInput" class="page-input" min="1" max="<%= totalPages %>" onkeypress="if(event.key==='Enter') goToPage(parseInt(this.value))" />
+            <span>of <%= totalPages %></span>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="shortcuts">
+        <div class="shortcut-item"><kbd>←</kbd> <kbd>→</kbd> Navigate</div>
+        <div class="shortcut-item"><kbd>Space</kbd> Next</div>
+        <div class="shortcut-item"><kbd>Home</kbd> <kbd>End</kbd> First/Last</div>
+        <div class="shortcut-item">📖 Click page edges</div>
+    </div>
+
+    <script>
+<%- js %>
+    </script>
+</body>
+</html>

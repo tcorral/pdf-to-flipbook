@@ -22,6 +22,26 @@ describe('Types', () => {
       expect(options.quality).toBe(85);
       expect(options.title).toBe('Test Flipbook');
       expect(options.subtitle).toBe('Test Subtitle');
+      expect(options.templateDir).toBeUndefined();
+      expect(options.themeDir).toBeUndefined();
+    });
+
+    it('should allow creation of ConversionOptions with custom templates and themes', () => {
+      const options: ConversionOptions = {
+        pdfPath: '/path/to/test.pdf',
+        outputDir: '/path/to/output',
+        templateDir: '/custom/templates',
+        themeDir: '/custom/themes',
+        title: 'Custom Flipbook',
+        subtitle: 'Custom Subtitle'
+      };
+
+      expect(options.pdfPath).toBe('/path/to/test.pdf');
+      expect(options.outputDir).toBe('/path/to/output');
+      expect(options.templateDir).toBe('/custom/templates');
+      expect(options.themeDir).toBe('/custom/themes');
+      expect(options.title).toBe('Custom Flipbook');
+      expect(options.subtitle).toBe('Custom Subtitle');
     });
 
     it('should allow partial ConversionOptions object', () => {

@@ -168,6 +168,61 @@ describe('CLI', () => {
       expect(result.title).toBe('Mixed Title');
       expect(result.subtitle).toBe('Interactive Flipbook Viewer'); // default
     });
+
+    it('should parse custom template directory', () => {
+      process.argv = [
+        'node', 'cli.js',
+        'test.pdf',
+        '--template-dir', '/path/to/custom/templates'
+      ];
+
+      const result = parseArgs();
+
+      expect(result.pdfPath).toBe('test.pdf');
+      expect(result.templateDir).toBe('/path/to/custom/templates');
+    });
+
+    it('should parse custom theme directory', () => {
+      process.argv = [
+        'node', 'cli.js',
+        'test.pdf',
+        '--theme-dir', '/path/to/custom/themes'
+      ];
+
+      const result = parseArgs();
+
+      expect(result.pdfPath).toBe('test.pdf');
+      expect(result.themeDir).toBe('/path/to/custom/themes');
+    });
+
+    it('should parse both template and theme directories together', () => {
+      process.argv = [
+        'node', 'cli.js',
+        'test.pdf',
+        './output',
+        '--template-dir', '/templates',
+        '--theme-dir', '/themes',
+        '--title', 'Custom Book'
+      ];
+
+      const result = parseArgs();
+
+      expect(result.pdfPath).toBe('test.pdf');
+      expect(result.outputDir).toBe('./output');
+      expect(result.templateDir).toBe('/templates');
+      expect(result.themeDir).toBe('/themes');
+      expect(result.title).toBe('Custom Book');
+    });
+
+    it('should not require template-dir and theme-dir', () => {
+      process.argv = ['node', 'cli.js', 'test.pdf'];
+
+      const result = parseArgs();
+
+      expect(result.pdfPath).toBe('test.pdf');
+      expect(result.templateDir).toBeUndefined();
+      expect(result.themeDir).toBeUndefined();
+    });
   });
 
   describe('printHelp', () => {
@@ -226,6 +281,45 @@ describe('CLI', () => {
         quality: 85,
         title: 'Flipbook',
         subtitle: 'Interactive Flipbook Viewer',
+      });
+
+      expect(process.exit).toHaveBeenCalledWith(0);
+
+      process.exit = originalExit;
+    });
+
+    it('should pass custom template and theme directories to converter', async () => {
+      process.argv = [
+        'node', 'cli.js',
+        'test.pdf',
+        './output',
+        '--template-dir', '/custom/templates',
+        '--theme-dir', '/custom/themes'
+      ];
+
+      (mockedPDFToFlipbookConverter.convert as jest.Mock).mockResolvedValue({
+        success: true,
+        totalPages: 5,
+        outputPath: './output',
+        totalSize: 100000,
+        duration: 2.5,
+        message: 'Success',
+      });
+
+      const originalExit = process.exit;
+      process.exit = jest.fn() as any;
+
+      await main();
+
+      expect(mockedPDFToFlipbookConverter.convert).toHaveBeenCalledWith({
+        pdfPath: 'test.pdf',
+        outputDir: './output',
+        dpi: 150,
+        quality: 85,
+        title: 'Flipbook',
+        subtitle: 'Interactive Flipbook Viewer',
+        templateDir: '/custom/templates',
+        themeDir: '/custom/themes',
       });
 
       expect(process.exit).toHaveBeenCalledWith(0);

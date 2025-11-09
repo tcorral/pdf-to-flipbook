@@ -46,6 +46,8 @@ export function parseArgs(): {
   quality: number;
   title: string;
   subtitle: string;
+  templateDir?: string;
+  themeDir?: string;
 } {
   const args = process.argv.slice(2);
   
@@ -60,6 +62,8 @@ export function parseArgs(): {
   let quality = 85;
   let title = 'Flipbook';
   let subtitle = 'Interactive Flipbook Viewer';
+  let templateDir: string | undefined;
+  let themeDir: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -92,6 +96,14 @@ export function parseArgs(): {
         subtitle = args[i + 1];
         i++;
         break;
+      case '--template-dir':
+        templateDir = args[i + 1];
+        i++;
+        break;
+      case '--theme-dir':
+        themeDir = args[i + 1];
+        i++;
+        break;
       default:
         // First positional argument is PDF path, second is output
         if (!pdfPath && !args[i].startsWith('-')) {
@@ -116,7 +128,7 @@ export function parseArgs(): {
     outputDir = path.join(process.cwd(), `${filename}_flipbook`);
   }
 
-  return { pdfPath, outputDir, dpi, quality, title, subtitle };
+  return { pdfPath, outputDir, dpi, quality, title, subtitle, templateDir, themeDir };
 }
 
 export function printHelp(): void {
@@ -139,6 +151,8 @@ OPTIONS
   --quality, -q     Image quality 0-100 (default: 85)
   --title, -t        Flipbook title (default: "Flipbook")
   --subtitle, -s    Flipbook subtitle (default: "Interactive Flipbook Viewer")
+  --template-dir     Directory containing custom HTML templates
+  --theme-dir        Directory containing custom CSS themes
   --help, -h        Show this help message
 
 EXAMPLES
@@ -198,6 +212,8 @@ export async function main(): Promise<void> {
       quality: args.quality,
       title: args.title,
       subtitle: args.subtitle,
+      templateDir: args.templateDir,
+      themeDir: args.themeDir,
     });
 
     process.exit(result.success ? 0 : 1);

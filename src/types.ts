@@ -9,6 +9,8 @@ export interface ConversionOptions {
   quality?: number;
   title?: string;
   subtitle?: string;
+  templateDir?: string;
+  themeDir?: string;
 }
 
 export interface ConversionResult {

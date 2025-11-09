@@ -81,7 +81,7 @@ describe('PDFToFlipbookConverter', () => {
         pageCount: 5,
         headerColor1: '#667eea',
         headerColor2: '#764ba2',
-      });
+      }, undefined, undefined);
       expect(mockedFlipbookGenerator.saveHTML).toHaveBeenCalled();
 
       mockDateNow.mockRestore();
@@ -119,7 +119,8 @@ describe('PDFToFlipbookConverter', () => {
         expect.objectContaining({
           title: 'Flipbook',
           subtitle: 'Interactive Flipbook Viewer',
-        })
+        }),
+        undefined, undefined
       );
 
       mockDateNow.mockRestore();
@@ -232,6 +233,102 @@ describe('PDFToFlipbookConverter', () => {
         expect.stringContaining('QUICK_START.txt'),
         expect.stringContaining('INTERACTIVE FLIPBOOK VIEWER'),
         'utf-8'
+      );
+    });
+
+    it('should pass custom template directory to FlipbookGenerator', async () => {
+      const options: ConversionOptions = {
+        pdfPath: '/path/to/test.pdf',
+        outputDir: '/path/to/output',
+        templateDir: '/custom/templates',
+      };
+
+      const mockConverterInstance = {
+        validatePDF: jest.fn().mockResolvedValue(5),
+        convertToWebP: jest.fn().mockResolvedValue([]),
+        calculateTotalSize: jest.fn().mockReturnValue(0),
+      };
+      mockedPDFConverter.mockImplementation(() => mockConverterInstance as any);
+
+      (mockedFlipbookGenerator.generateHTML as jest.Mock).mockReturnValue('<html></html>');
+      (mockedFlipbookGenerator.saveHTML as jest.Mock).mockImplementation();
+
+      await PDFToFlipbookConverter.convert(options);
+
+      expect(mockedFlipbookGenerator.generateHTML).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Flipbook',
+          subtitle: 'Interactive Flipbook Viewer',
+          totalPages: 5,
+          pageCount: 5,
+        }),
+        '/custom/templates', // templateDir should be passed
+        undefined // themeDir should be undefined
+      );
+    });
+
+    it('should pass custom theme directory to FlipbookGenerator', async () => {
+      const options: ConversionOptions = {
+        pdfPath: '/path/to/test.pdf',
+        outputDir: '/path/to/output',
+        themeDir: '/custom/themes',
+      };
+
+      const mockConverterInstance = {
+        validatePDF: jest.fn().mockResolvedValue(5),
+        convertToWebP: jest.fn().mockResolvedValue([]),
+        calculateTotalSize: jest.fn().mockReturnValue(0),
+      };
+      mockedPDFConverter.mockImplementation(() => mockConverterInstance as any);
+
+      (mockedFlipbookGenerator.generateHTML as jest.Mock).mockReturnValue('<html></html>');
+      (mockedFlipbookGenerator.saveHTML as jest.Mock).mockImplementation();
+
+      await PDFToFlipbookConverter.convert(options);
+
+      expect(mockedFlipbookGenerator.generateHTML).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Flipbook',
+          subtitle: 'Interactive Flipbook Viewer',
+          totalPages: 5,
+          pageCount: 5,
+        }),
+        undefined, // templateDir should be undefined
+        '/custom/themes' // themeDir should be passed
+      );
+    });
+
+    it('should pass both custom template and theme directories to FlipbookGenerator', async () => {
+      const options: ConversionOptions = {
+        pdfPath: '/path/to/test.pdf',
+        outputDir: '/path/to/output',
+        templateDir: '/custom/templates',
+        themeDir: '/custom/themes',
+        title: 'Custom Book',
+        subtitle: 'Custom Subtitle',
+      };
+
+      const mockConverterInstance = {
+        validatePDF: jest.fn().mockResolvedValue(3),
+        convertToWebP: jest.fn().mockResolvedValue([]),
+        calculateTotalSize: jest.fn().mockReturnValue(0),
+      };
+      mockedPDFConverter.mockImplementation(() => mockConverterInstance as any);
+
+      (mockedFlipbookGenerator.generateHTML as jest.Mock).mockReturnValue('<html></html>');
+      (mockedFlipbookGenerator.saveHTML as jest.Mock).mockImplementation();
+
+      await PDFToFlipbookConverter.convert(options);
+
+      expect(mockedFlipbookGenerator.generateHTML).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Custom Book',
+          subtitle: 'Custom Subtitle',
+          totalPages: 3,
+          pageCount: 3,
+        }),
+        '/custom/templates', // templateDir should be passed
+        '/custom/themes' // themeDir should be passed
       );
     });
   });

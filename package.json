@@ -1,6 +1,6 @@
 {
   "name": "pdf-to-flipbook",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Convert PDF files to interactive web-based flipbooks",
   "type": "module",
   "main": "dist/index.js",
@@ -12,7 +12,7 @@
     "dev": "node --loader ts-node/esm src/cli.ts",
     "start": "node dist/cli.js",
     "bundle": "esbuild src/cli.ts --bundle --platform=node --target=node18 --outfile=dist/flipbook --external:pdf-parse --external:canvas --external:sharp",
-    "pkg": "pkg --output flipbook dist/flipbook --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-x64 --compress GZip --public --assets node_modules/sharp/vendor:sharp/vendor --assets node_modules/sharp/build:sharp/build",
+    "pkg": "pkg --output flipbook dist/flipbook --targets node18-macos-arm64,node18-macos-x64,node18-win-x64,node18-linux-x64 --compress GZip --public --assets node_modules/sharp/vendor:sharp/vendor --assets node_modules/sharp/build:sharp/build --assets templates:templates --assets themes:themes",
     "pkg:build": "npm run build && npm run bundle && npm run pkg",
     "pkg:rebuild": "npm run clean && npm run check:node && rm -rf node_modules package-lock.json && npm install && npm run pkg:build",
     "pkg:rebuild:force": "./scripts/rebuild-with-node18.sh",
@@ -35,11 +35,13 @@
   "license": "MIT",
   "dependencies": {
     "canvas": "^2.11.2",
+    "ejs": "^3.1.10",
     "pdf-lib": "^1.17.1",
     "sharp": "^0.32.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
+    "@types/ejs": "^3.1.5",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.10.0",
     "esbuild": "^0.19.11",
