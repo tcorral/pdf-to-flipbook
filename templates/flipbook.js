@@ -1,5 +1,6 @@
         const totalPages = <%= totalPages %>;
         let currentPage = 1;
+        let isAnimating = false;
 
         const pagesContainer = document.getElementById('pagesContainer');
         const pageInput = document.getElementById('pageInput');
@@ -36,15 +37,9 @@
                 leftPageNum = totalPages;
             } else {
                 // Two-page spread
-                if (currentPage % 2 === 1) {
-                    // Odd page on left, even page on right
-                    leftPageNum = currentPage;
-                    rightPageNum = currentPage + 1 <= totalPages ? currentPage + 1 : null;
-                } else {
-                    // Even page on left, odd page on right
-                    leftPageNum = currentPage - 1;
-                    rightPageNum = currentPage;
-                }
+                // currentPage represents the left page number
+                leftPageNum = currentPage;
+                rightPageNum = currentPage + 1;
             }
 
             // Create left page
@@ -73,7 +68,7 @@
             return page;
         }
 
-        function updateUI() {
+        function updateUI(skipAnimation = false) {
             pageInput.value = currentPage;
             if (currentPageSpan) {
                 currentPageSpan.textContent = currentPage;
@@ -89,30 +84,287 @@
             document.getElementById('firstBtn').disabled = currentPage === 1;
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage >= totalPages;
-            document.getElementById('lastBtn').disabled = currentPage === totalPages;
+            document.getElementById('lastBtn').disabled = currentPage >= totalPages;
 
-            initPages();
+            if (skipAnimation) {
+                initPages();
+            }
+        }
+
+        function updateUIElements() {
+            pageInput.value = currentPage;
+            if (currentPageSpan) {
+                currentPageSpan.textContent = currentPage;
+            }
+
+            // Update progress bar
+            if (progressFill) {
+                const progress = (currentPage / totalPages) * 100;
+                progressFill.style.width = progress + '%';
+            }
+
+            // Update button states
+            document.getElementById('firstBtn').disabled = currentPage === 1;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            document.getElementById('lastBtn').disabled = currentPage >= totalPages;
+        }
+
+        function turnPageForward() {
+            if (isAnimating || currentPage >= totalPages || totalPages === 1) {
+                return;
+            }
+
+            console.log('Starting forward animation from page', currentPage);
+            isAnimating = true;
+            
+            // Calculate new page position
+            // From page 1 (cover), go to page 2 (shows pages 2-3)
+            // From page 2, go to page 4 (shows pages 4-5)
+            // currentPage is the LEFT page number
+            let newPagePosition;
+            
+            if (currentPage === 1) {
+                // From cover, go to page 2 (shows pages 2-3)
+                newPagePosition = 2;
+            } else {
+                // From a two-page spread, move forward by 2
+                newPagePosition = Math.min(currentPage + 2, totalPages);
+                
+                // Adjust for edge cases - if we land on the last page or near it
+                if (newPagePosition === totalPages - 1) {
+                    newPagePosition = totalPages;
+                } else if (newPagePosition > totalPages) {
+                    newPagePosition = totalPages;
+                }
+            }
+            
+            currentPage = newPagePosition;
+
+            // Get the right page element that will turn
+            const rightPage = pagesContainer.querySelector('.page.right, .page.full');
+            if (!rightPage) {
+                isAnimating = false;
+                updateUI(true); // This is the only place we need to reset
+                return;
+            }
+
+            // Prepare new pages that will appear behind
+            // currentPage is the LEFT page number
+            let newLeftPageNum = null;
+            let newRightPageNum = null;
+
+            if (currentPage === 1) {
+                // Only page 1 (full width)
+                newRightPageNum = 1;
+            } else if (currentPage === totalPages) {
+                // Only last page (full width)
+                newLeftPageNum = totalPages;
+            } else {
+                // Two-page spread: currentPage is on the left, currentPage+1 is on the right
+                newLeftPageNum = currentPage;
+                newRightPageNum = currentPage + 1;
+            }
+
+            // Create new pages behind the turning page
+            const newLeftPage = newLeftPageNum ? createPageElement(newLeftPageNum, 'left') : null;
+            const newRightPage = newRightPageNum ? createPageElement(newRightPageNum, currentPage === 1 || currentPage === totalPages ? 'full' : 'right') : null;
+
+            if (newLeftPage) {
+                newLeftPage.classList.add('page-behind');
+                pagesContainer.appendChild(newLeftPage);
+            }
+            if (newRightPage) {
+                newRightPage.classList.add('page-behind');
+                pagesContainer.appendChild(newRightPage);
+            }
+
+            // Add turning class and start animation
+            rightPage.classList.add('page-turning-forward');
+            rightPage.style.zIndex = '100';
+
+            // Update UI elements immediately (progress bar, buttons, etc.) but don't touch pages
+            updateUIElements();
+
+            // Wait for animation to complete
+            rightPage.addEventListener('animationend', function onAnimationEnd() {
+                console.log('Forward animation completed');
+                rightPage.removeEventListener('animationend', onAnimationEnd);
+                rightPage.remove();
+                if (newLeftPage) newLeftPage.classList.remove('page-behind');
+                if (newRightPage) newRightPage.classList.remove('page-behind');
+                isAnimating = false;
+                // Don't need to call initPages as the new pages are already in place
+            }, { once: true });
+
+            // Fallback timeout in case animation doesn't complete
+            setTimeout(() => {
+                if (isAnimating) {
+                    console.log('Forward animation timeout, forcing completion');
+                    rightPage.remove();
+                    if (newLeftPage) newLeftPage.classList.remove('page-behind');
+                    if (newRightPage) newRightPage.classList.remove('page-behind');
+                    isAnimating = false;
+                }
+            }, 1000);
+        }
+
+        function turnPageBackward() {
+            if (isAnimating || currentPage <= 1 || totalPages === 1) {
+                return;
+            }
+
+            console.log('Starting backward animation from page', currentPage);
+            isAnimating = true;
+            
+            // Calculate new page position
+            // From page 2, go back to page 1 (cover)
+            // From any other page, move backward by 2
+            // currentPage is the LEFT page number
+            let newPagePosition;
+            
+            if (currentPage === 2) {
+                // From page 2 (pages 2-3), go back to cover (page 1)
+                newPagePosition = 1;
+            } else {
+                // From a two-page spread, move backward by 2
+                newPagePosition = Math.max(currentPage - 2, 1);
+            }
+            
+            currentPage = newPagePosition;
+
+            // Get the left page element that will turn
+            const leftPage = pagesContainer.querySelector('.page.left');
+            if (!leftPage) {
+                isAnimating = false;
+                updateUI(true);
+                return;
+            }
+
+            // Prepare new pages that will appear behind
+            // currentPage is the LEFT page number
+            let newLeftPageNum = null;
+            let newRightPageNum = null;
+
+            if (currentPage === 1) {
+                // Only page 1 (full width)
+                newRightPageNum = 1;
+            } else if (currentPage === totalPages) {
+                // Only last page (full width)
+                newLeftPageNum = totalPages;
+            } else {
+                // Two-page spread: currentPage is on the left, currentPage+1 is on the right
+                newLeftPageNum = currentPage;
+                newRightPageNum = currentPage + 1;
+            }
+
+            // Create new pages behind the turning page
+            const newLeftPage = newLeftPageNum ? createPageElement(newLeftPageNum, 'left') : null;
+            const newRightPage = newRightPageNum ? createPageElement(newRightPageNum, currentPage === 1 || currentPage === totalPages ? 'full' : 'right') : null;
+
+            if (newLeftPage) {
+                newLeftPage.classList.add('page-behind');
+                pagesContainer.appendChild(newLeftPage);
+            }
+            if (newRightPage) {
+                newRightPage.classList.add('page-behind');
+                pagesContainer.appendChild(newRightPage);
+            }
+
+            // Set z-index for turning page
+            leftPage.style.zIndex = '100';
+
+            // Update UI elements immediately (progress bar, buttons, etc.) but don't touch pages
+            updateUIElements();
+
+            // Add turning class and start animation
+            leftPage.classList.add('page-turning-backward');
+
+            // Wait for animation to complete
+            leftPage.addEventListener('animationend', function onAnimationEnd() {
+                console.log('Backward animation completed');
+                leftPage.removeEventListener('animationend', onAnimationEnd);
+                leftPage.remove();
+                if (newLeftPage) newLeftPage.classList.remove('page-behind');
+                if (newRightPage) newRightPage.classList.remove('page-behind');
+                isAnimating = false;
+                // Don't need to call initPages as the new pages are already in place
+            }, { once: true });
+
+            // Fallback timeout in case animation doesn't complete
+            setTimeout(() => {
+                if (isAnimating) {
+                    console.log('Backward animation timeout, forcing completion');
+                    leftPage.remove();
+                    if (newLeftPage) newLeftPage.classList.remove('page-behind');
+                    if (newRightPage) newRightPage.classList.remove('page-behind');
+                    isAnimating = false;
+                }
+            }, 1000);
         }
 
         function nextPage() {
-            if (currentPage < totalPages) {
-                currentPage = Math.min(currentPage + 2, totalPages);
-                if (currentPage === totalPages - 1) currentPage = totalPages;
-                updateUI();
+            console.log('nextPage called, currentPage:', currentPage, 'isAnimating:', isAnimating);
+            if (currentPage < totalPages && !isAnimating) {
+                console.log('Calling turnPageForward');
+                turnPageForward();
+            } else {
+                console.log('Not calling turnPageForward, conditions not met');
             }
         }
 
         function previousPage() {
-            if (currentPage > 1) {
-                currentPage = Math.max(currentPage - 2, 1);
-                updateUI();
+            console.log('previousPage called, currentPage:', currentPage, 'isAnimating:', isAnimating);
+            if (currentPage > 1 && !isAnimating) {
+                console.log('Calling turnPageBackward');
+                turnPageBackward();
+            } else {
+                console.log('Not calling turnPageBackward, conditions not met');
             }
         }
 
         function goToPage(pageNum) {
+            if (isAnimating) {
+                return;
+            }
             pageNum = Math.max(1, Math.min(parseInt(pageNum) || 1, totalPages));
-            currentPage = pageNum;
-            updateUI();
+            const pageDiff = Math.abs(pageNum - currentPage);
+            
+            // For large jumps or single page, skip animation
+            if (pageDiff > 4 || totalPages === 1) {
+                currentPage = pageNum;
+                updateUI(true);
+                return;
+            }
+
+            // For small jumps, use animation
+            if (pageNum > currentPage) {
+                // Turn forward until we reach the target
+                const turnForward = () => {
+                    if (currentPage < pageNum && !isAnimating) {
+                        turnPageForward();
+                        setTimeout(() => {
+                            if (currentPage < pageNum) {
+                                turnForward();
+                            }
+                        }, 850);
+                    }
+                };
+                turnForward();
+            } else if (pageNum < currentPage) {
+                // Turn backward until we reach the target
+                const turnBackward = () => {
+                    if (currentPage > pageNum && !isAnimating) {
+                        turnPageBackward();
+                        setTimeout(() => {
+                            if (currentPage > pageNum) {
+                                turnBackward();
+                            }
+                        }, 850);
+                    }
+                };
+                turnBackward();
+            }
         }
 
         // Keyboard shortcuts
@@ -146,4 +398,4 @@
         navRight.addEventListener('click', nextPage);
 
         // Initialize
-        updateUI();
+        updateUI(true);
