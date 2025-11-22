@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-22 - [https://github.com/pdf-to-flipbook/pdf-to-flipbook/releases/tag/v1.2.0]
+
+### Added
+- **3D Page-Turn Animation**: Realistic 3D page-flipping effect with CSS transforms and perspective
+- **Enhanced Navigation**: Smooth animated transitions when moving between pages
+- **Visual Depth**: Shadow effects during page turns for realistic depth perception
+- **Performance Optimized**: GPU-accelerated animations using CSS transforms
+
+### Changed
+- **Page Navigation Logic**: Improved page sequencing for correct two-page spread display
+- **Animation System**: Complete animation framework with state management to prevent conflicts
+- **Flipbook Behavior**: More intuitive page display - first spread shows pages 2-3 after cover
+
+### Technical Enhancements
+- **CSS 3D Transforms**: Implemented perspective, transform-style preserve-3d, and rotateY animations
+- **Animation Management**: Added isAnimating flag to prevent simultaneous animations
+- **Fallback Timeouts**: Safety mechanism for animation completion with 1-second timeout
+- **Page State Management**: Proper handling of pages behind turning pages during animation
+
+
 ## [1.1.0] - 2025-11-09 - [https://github.com/pdf-to-flipbook/pdf-to-flipbook/releases/tag/v1.1.0]
 
 ### Added
